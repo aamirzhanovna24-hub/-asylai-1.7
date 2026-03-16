@@ -1,0 +1,92 @@
+CREATE DATABASE GymDB;
+USE GymDB;
+
+CREATE TABLE MembershipTypes (
+    membershipType_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    duration_month INT NOT NULL CHECK (duration_month > 0),
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    access_level VARCHAR(50) DEFAULT 'Standard'
+);
+
+-- ALTER TABLE
+ALTER TABLE MembershipTypes
+MODIFY name VARCHAR(80) NOT NULL;
+
+-- Insert data
+INSERT INTO MembershipTypes (name, duration_month, price, access_level) VALUES
+('Basic',1,30,'Standard'),
+('Silver',3,80,'Standard'),
+('Gold',6,150,'Premium'),
+('Platinum',12,250,'VIP'),
+('Student',3,60,'Standard');
+
+-- View data
+SELECT * FROM MembershipTypes;
+
+CREATE TABLE Members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    gender CHAR(1) DEFAULT 'O',
+    phone VARCHAR(20) UNIQUE,
+    registration_date DATE DEFAULT now(),
+    membership_id INT NOT NULL,
+    status CHAR(1) NOT NULL,
+
+    FOREIGN KEY (membership_id) 
+    REFERENCES MembershipTypes(membershipType_id)
+);
+
+-- ALTER TABLE
+ALTER TABLE Members
+ADD email VARCHAR(100) UNIQUE;
+
+-- Insert data
+INSERT INTO Members (first_name,last_name,date_of_birth,gender,phone,membership_id,status,email) VALUES
+('John','Smith','1995-04-10','M','111111111',1,'A','john@gmail.com'),
+('Anna','Brown','1998-06-20','F','222222222',2,'A','anna@gmail.com'),
+('David','Lee','1992-03-15','M','333333333',3,'A','david@gmail.com'),
+('Maria','Garcia','1997-09-05','F','444444444',4,'A','maria@gmail.com'),
+('James','Wilson','1990-12-01','M','555555555',5,'A','james@gmail.com');
+
+-- View data
+SELECT * FROM Members;
+
+CREATE TABLE Invoice (
+    invoice_id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT NOT NULL,
+    invoice_date DATE NOT NULL ,
+    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
+    status CHAR(1) NOT NULL DEFAULT 'P',
+
+    FOREIGN KEY (member_id) 
+    REFERENCES Members(member_id)
+);
+
+-- ALTER TABLE
+ALTER TABLE Invoice
+RENAME COLUMN status TO invoice_status;
+
+-- Insert data
+INSERT INTO Invoice (member_id,total_amount,invoice_status) VALUES
+(1,30,'P'),
+(2,80,'P'),
+(3,150,'C'),
+(4,250,'C'),
+(5,60,'P');
+
+-- View data
+SELECT * FROM Invoice;
+
+SHOW TABLES;
+SELECT 
+Members.first_name,
+Members.last_name,
+MembershipTypes.name AS membership,
+Invoice.total_amount,
+Invoice.invoice_status
+FROM Invoice
+JOIN Members ON Invoice.member_id = Members.member_id
+JOIN MembershipTypes ON Members.membership_id = MembershipTypes.membershipType_id;
